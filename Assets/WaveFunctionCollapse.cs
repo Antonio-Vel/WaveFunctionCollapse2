@@ -11,7 +11,9 @@ public class WaveFunctionCollapse : MonoBehaviour
     {
         int[,] contents;
         List<Pattern>[] Neighbors;
+        int[][] sides;
         int frequency;
+
     }
     /*
      *      0 == UP
@@ -27,6 +29,7 @@ public class WaveFunctionCollapse : MonoBehaviour
             return;
         }
 
+        //START OF INPUTGRIDCREATOR
         Vector2Int size = Vector2Int.zero;
         Vector3Int cursor = Vector3Int.zero;
         cursor.x = input.x;
@@ -43,8 +46,42 @@ public class WaveFunctionCollapse : MonoBehaviour
             size.y++;
             cursor.x = input.x;
         }
+        cursor.x = input.x;
+        cursor.y = input.y;
 
-        print(size);
+        List<int> indexedtiles = new();
+        List<TileBase> tiles = new();
+
+        int[,] inputGrid = new int[size.y,size.x];
+        
+        for (int y = 0; y < size.y; y++)
+        {
+            for (int x = 0; x < size.x; x++)
+            {
+                Vector3Int offset = new Vector3Int(x, y);
+                TileBase target = map.GetTile(cursor + offset);
+                int id = int.Parse(target.name[^1..]);
+                if (!indexedtiles.Contains(id))
+                {
+                    indexedtiles.Add(id);
+                    tiles.Add(target);
+                }
+                inputGrid[y, x] = id;
+            }
+        }
     }
 
+    static string ToString(int[,] array)
+    {
+        string result = "";
+        for (int y = array.GetLength(0) - 1; y >= 0; y--)
+        {
+            for (int x = 0; x < array.GetLength(1); x++)
+            {
+                result += array[y, x] + "\t";
+            }
+            result += "\n";
+        }
+        return result;
+    }
 }
