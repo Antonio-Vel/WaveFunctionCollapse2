@@ -14,7 +14,7 @@ public class WaveFunctionInspector : Editor
 
         if (GUILayout.Button("YUH"))
         {
-            exam.CreateInputGrid();
+            exam.WFC();
         }
     }
 }
