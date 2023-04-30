@@ -18,6 +18,14 @@ public class WaveFunctionCollapse : MonoBehaviour
 
         public int[][] Sides { get => sides; set => sides = value; }
     }
+
+    struct WaveCell
+    {
+        public List<Pattern> possibilities;
+        public WaveCell[] adjacent;
+        public float entropy;
+        public bool solved;
+    }
     /*
      *      0 == UP
      *      1 == DOWN
@@ -229,6 +237,8 @@ public class WaveFunctionCollapse : MonoBehaviour
         print("Contents:\n" + ToString(targetPattern.contents));
         print(ToString(targetPattern.Sides[0]) + "" + ToString(targetPattern.Sides[1]) + ToString(targetPattern.Sides[2]) + ToString(targetPattern.Sides[3]));
         print("Neighbors with: " + targetPattern.neighbors[0][0].index + ";\n" + ToString(targetPattern.neighbors[0][0].contents));
+
+        //End of Pattern Configuration & Start of WaveCell
 
     }
 
