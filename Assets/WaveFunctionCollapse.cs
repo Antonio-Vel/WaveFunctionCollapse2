@@ -5,6 +5,22 @@ using UnityEngine.Tilemaps;
 
 public class WaveFunctionCollapse : MonoBehaviour
 {
+    /*
+     * TODO:Fix The Issue With Frequency
+     *      Add WaveCell Propagation
+     *      Turn WaveCells Into Defined Patterns
+     *      Output PatternGrid as Grid of Indicies
+     *      Draw Tileset, Or Print Result
+     * 
+     * 
+     *
+     * 
+     */
+
+
+
+
+
     public Tilemap map;
     public Vector3Int input;
     public int patternSize;
