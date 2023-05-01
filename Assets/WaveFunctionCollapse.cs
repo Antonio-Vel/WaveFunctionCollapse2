@@ -8,12 +8,13 @@ public class WaveFunctionCollapse : MonoBehaviour
     public Tilemap map;
     public Vector3Int input;
     public int patternSize;
+    public int outputSize;
     struct Pattern
     {
         public int[,] contents;
         public List<Pattern>[] neighbors;
-        private int[][] sides;
-        public int frequency;
+        int[][] sides;
+        public float frequency;
         public int index;
 
         public int[][] Sides { get => sides; set => sides = value; }
@@ -21,10 +22,49 @@ public class WaveFunctionCollapse : MonoBehaviour
 
     struct WaveCell
     {
-        public List<Pattern> possibilities;
+        List<Pattern> possibilities;
         public WaveCell[] adjacent;
         public float entropy;
         public bool solved;
+        public int numPossibilies;
+        public Vector2Int pos;
+        public bool empty;
+        Pattern solution; 
+
+        public List<Pattern> Possibilites
+        {
+            get
+            {
+                return possibilities;
+            }
+            set
+            {
+                numPossibilies = value.Count;
+                solved = numPossibilies == 1;
+                possibilities = value;
+            }
+        }
+
+        public Pattern Solution
+        {
+            get 
+            {
+                return solution;
+            }
+            set
+            {
+                Possibilites = new List<Pattern>() {value};
+            }
+
+        }
+
+        public static WaveCell NAN()
+        {
+            return new WaveCell()
+            {
+                empty = true
+            };
+        }
     }
     /*
      *      0 == UP
@@ -171,13 +211,18 @@ public class WaveFunctionCollapse : MonoBehaviour
                 if (!found)
                 {
                     target.index = numPatterns;
-                    target.frequency++;
+                    target.frequency += 1;
+                    print(target.index + " found! Freq : " + target.frequency);
                     numPatterns++;
                     allPatterns.Add(target);
                     patternGrid[y, x] = target;
                 }
                 else
                 {
+                    target = patternGrid[y, x];
+                    target.frequency += 1;
+                    print(target.index + " found! Freq : " + target.frequency);
+                    numPatterns++;
                     patternGrid[y, x].frequency++;
                 }
 
@@ -230,6 +275,13 @@ public class WaveFunctionCollapse : MonoBehaviour
                 }
             }
         }
+        
+        for(int i = 0; i < allPatterns.Count; i++)
+        {
+            Pattern pattern = allPatterns[i];
+            print(pattern.frequency);
+            pattern.frequency /= allPatterns.Count;
+        }
 
         //Little Debug
         Pattern targetPattern = allPatterns[4];
@@ -239,6 +291,66 @@ public class WaveFunctionCollapse : MonoBehaviour
         print("Neighbors with: " + targetPattern.neighbors[0][0].index + ";\n" + ToString(targetPattern.neighbors[0][0].contents));
 
         //End of Pattern Configuration & Start of WaveCell
+
+        WaveCell[,] cellGrid = new WaveCell[5,5];
+
+        for (int y = 0; y < cellGrid.GetLength(0); y++)
+        {
+            for (int x = 0; x < cellGrid.GetLength(1); x++)
+            {
+                cellGrid[y, x] = new WaveCell()
+                {
+                    Possibilites = new List<Pattern>(allPatterns),
+                    pos = new Vector2Int(x, y),
+                    empty = false,
+                    adjacent = new WaveCell[4]
+                };
+            }
+        }
+
+        foreach (WaveCell cell in cellGrid)
+        {
+            cell.adjacent[0] = ((cell.pos.y + 1) < cellGrid.GetLength(0)) ? cellGrid[cell.pos.y + 1, cell.pos.x] : WaveCell.NAN();
+            cell.adjacent[1] = (cell.pos.y == 0) ? WaveCell.NAN() : cellGrid[cell.pos.y - 1, cell.pos.x];
+            cell.adjacent[2] = ((cell.pos.x + 1) < cellGrid.GetLength(1)) ? cellGrid[cell.pos.y, cell.pos.x + 1] : WaveCell.NAN();
+            cell.adjacent[3] = (cell.pos.x == 0) ? WaveCell.NAN() : cellGrid[cell.pos.y, cell.pos.x - 1];
+        }
+
+        static void collapse(WaveCell cell)
+        {
+            List<Pattern> possibilities = new List<Pattern>(cell.Possibilites);
+            float[] ranges = new float[possibilities.Count];
+            ranges[0] = possibilities[0].frequency;
+            for (int i = 1; i < ranges.Length; i++)
+            {
+                ranges[i] = ranges[i - 1] + possibilities[i].frequency;
+                print(ranges[i]);
+            }
+
+            float rand = Random.Range(0F, 1F);
+            bool decided = false;
+            for (int i = 0; !decided; i++)
+            {
+                if (i == ranges.Length)
+                {
+                    rand = Random.Range(0F, 1F);
+                    i = 0;
+                }
+
+                if (ranges[i] > rand)
+                {
+                    cell.Solution = possibilities[i];
+                    decided = true;
+                }
+            }
+        }
+
+
+
+        Vector2Int collapseTarget = new Vector2Int(Random.Range(0, cellGrid.GetLength(1)), Random.Range(0, cellGrid.GetLength(1)));
+
+        collapse(cellGrid[collapseTarget.y, collapseTarget.x]);
+
 
     }
 
