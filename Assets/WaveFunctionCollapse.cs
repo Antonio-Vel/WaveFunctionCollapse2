@@ -30,12 +30,24 @@ public class WaveFunctionCollapse : MonoBehaviour
         public int[,] contents;
         public List<Pattern>[] neighbors;
         int[][] sides;
-        public float frequency;
+        public float freq;
         public int index;
 
         public int[][] Sides { get => sides; set => sides = value; }
+
+        public static Pattern operator ++(Pattern pattern)
+        {
+            pattern.freq++;
+            return pattern;
+        }
+
+        public float frequency { get => freq; set => freq = value; }
     }
 
+    struct test
+    {
+        int i;
+    }
     struct WaveCell
     {
         List<Pattern> possibilities;
@@ -45,7 +57,7 @@ public class WaveFunctionCollapse : MonoBehaviour
         public int numPossibilies;
         public Vector2Int pos;
         public bool empty;
-        Pattern solution; 
+        Pattern solution;
 
         public List<Pattern> Possibilites
         {
@@ -59,17 +71,18 @@ public class WaveFunctionCollapse : MonoBehaviour
                 solved = numPossibilies == 1;
                 possibilities = value;
             }
+
         }
 
         public Pattern Solution
         {
-            get 
+            get
             {
                 return solution;
             }
             set
             {
-                Possibilites = new List<Pattern>() {value};
+                Possibilites = new List<Pattern>() { value };
             }
 
         }
@@ -181,7 +194,6 @@ public class WaveFunctionCollapse : MonoBehaviour
 
         Pattern[,] patternGrid = new Pattern[offsetGrid.GetLength(0) - patternSize + 1, offsetGrid.GetLength(1) - patternSize + 1];
         List<Pattern> allPatterns = new();
-        int numPatterns = 0;
 
         //string debugResult = "";
         for (int y = 0; y < patternGrid.GetLength(0); y++)
@@ -192,7 +204,7 @@ public class WaveFunctionCollapse : MonoBehaviour
                 {
                     contents = new int[patternSize, patternSize],
                     neighbors = new List<Pattern>[]
-                    { 
+                    {
                         new List<Pattern>(),
                         new List<Pattern>(),
                         new List<Pattern>(),
@@ -204,44 +216,59 @@ public class WaveFunctionCollapse : MonoBehaviour
                         new int[patternSize],
                         new int[patternSize],
                         new int[patternSize]
-                    }
+                    },
                 };
+
+                int[,] sample = new int[patternSize, patternSize];
+
                 for (int i = 0; i < patternSize; i++)
                 {
                     for (int j = 0; j < patternSize; j++)
                     {
-                        target.contents[i, j] = offsetGrid[y + i, x + j];
+                        sample[i, j] = offsetGrid[y + i, x + j];
                     }
                 }
 
+                int index = 0;
                 bool found = false;
-                foreach (Pattern p in allPatterns)
+                while (index < allPatterns.Count)
                 {
-                    if (Compare(p, target))
+                    if (Compare(allPatterns[index].contents, sample))
                     {
-                        patternGrid[y, x] = p;
                         found = true;
+                        patternGrid[y, x] = allPatterns[index];
+                        patternGrid[y, x]++;
+                        print(true);
+                        break;
                     }
+                    index++;
                 }
 
                 if (!found)
                 {
-                    target.index = numPatterns;
-                    target.frequency += 1;
-                    print(target.index + " found! Freq : " + target.frequency);
-                    numPatterns++;
-                    allPatterns.Add(target);
-                    patternGrid[y, x] = target;
-                }
-                else
-                {
-                    target = patternGrid[y, x];
-                    target.frequency += 1;
-                    print(target.index + " found! Freq : " + target.frequency);
-                    numPatterns++;
-                    patternGrid[y, x].frequency++;
+                    allPatterns.Add(new Pattern
+                    {
+                        contents = sample,
+                        neighbors = new List<Pattern>[]
+                    {
+                        new List<Pattern>(),
+                        new List<Pattern>(),
+                        new List<Pattern>(),
+                        new List<Pattern>()
+                    },
+                        Sides = new int[][]
+                    {
+                        new int[patternSize],
+                        new int[patternSize],
+                        new int[patternSize],
+                        new int[patternSize]
+                    },
+                        freq = 1,
+                        index = allPatterns.Count
+                    });
                 }
 
+                print("Index " + patternGrid[y, x].index + ". Frequency : " + patternGrid[y, x].frequency);
                 //debugResult += patternGrid[y, x].index + "\t";
             }
             //debugResult += "\n";
@@ -291,8 +318,8 @@ public class WaveFunctionCollapse : MonoBehaviour
                 }
             }
         }
-        
-        for(int i = 0; i < allPatterns.Count; i++)
+
+        for (int i = 0; i < allPatterns.Count; i++)
         {
             Pattern pattern = allPatterns[i];
             print(pattern.frequency);
@@ -308,7 +335,7 @@ public class WaveFunctionCollapse : MonoBehaviour
 
         //End of Pattern Configuration & Start of WaveCell
 
-        WaveCell[,] cellGrid = new WaveCell[5,5];
+        WaveCell[,] cellGrid = new WaveCell[5, 5];
 
         for (int y = 0; y < cellGrid.GetLength(0); y++)
         {
@@ -397,6 +424,20 @@ public class WaveFunctionCollapse : MonoBehaviour
             {
                 result = false;
             }
+        }
+        return result;
+    }
+
+    static bool Compare(int[,] a1, int[,] a2)
+    {
+        bool result = true;
+        for (int i = 0; i < a1.GetLength(0); i++)
+        {
+            for (int j = 0; j < a1.GetLength(1); j++)
+                if (a1[i, j] != a2[i, j])
+                {
+                    result = false;
+                }
         }
         return result;
     }
