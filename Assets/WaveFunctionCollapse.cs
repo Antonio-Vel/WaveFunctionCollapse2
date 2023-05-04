@@ -7,6 +7,7 @@ public class WaveFunctionCollapse : MonoBehaviour
 {
     /*
      * TODO:Fix The Issue With Frequency
+     *      -Frequency fixed! Work on wieght algorithm.
      *      Add WaveCell Propagation
      *      Turn WaveCells Into Defined Patterns
      *      Output PatternGrid as Grid of Indicies
@@ -30,23 +31,19 @@ public class WaveFunctionCollapse : MonoBehaviour
         public int[,] contents;
         public List<Pattern>[] neighbors;
         int[][] sides;
-        public float freq;
+        int appearance;
+        public float weight;
         public int index;
 
         public int[][] Sides { get => sides; set => sides = value; }
 
         public static Pattern operator ++(Pattern pattern)
         {
-            pattern.freq++;
+            pattern.appearance++;
             return pattern;
         }
 
-        public float frequency { get => freq; set => freq = value; }
-    }
-
-    struct test
-    {
-        int i;
+        public int Appearance { get => appearance; set => appearance = value; }
     }
     struct WaveCell
     {
@@ -200,25 +197,6 @@ public class WaveFunctionCollapse : MonoBehaviour
         {
             for (int x = 0; x < patternGrid.GetLength(1); x++)
             {
-                Pattern target = new Pattern
-                {
-                    contents = new int[patternSize, patternSize],
-                    neighbors = new List<Pattern>[]
-                    {
-                        new List<Pattern>(),
-                        new List<Pattern>(),
-                        new List<Pattern>(),
-                        new List<Pattern>()
-                    },
-                    Sides = new int[][]
-                    {
-                        new int[patternSize],
-                        new int[patternSize],
-                        new int[patternSize],
-                        new int[patternSize]
-                    },
-                };
-
                 int[,] sample = new int[patternSize, patternSize];
 
                 for (int i = 0; i < patternSize; i++)
@@ -236,8 +214,7 @@ public class WaveFunctionCollapse : MonoBehaviour
                     if (Compare(allPatterns[index].contents, sample))
                     {
                         found = true;
-                        patternGrid[y, x] = allPatterns[index];
-                        patternGrid[y, x]++;
+                        patternGrid[y, x] = allPatterns[index]++;
                         print(true);
                         break;
                     }
@@ -263,20 +240,31 @@ public class WaveFunctionCollapse : MonoBehaviour
                         new int[patternSize],
                         new int[patternSize]
                     },
-                        freq = 1,
+                        Appearance = 1,
                         index = allPatterns.Count
                     });
                 }
 
-                print("Index " + patternGrid[y, x].index + ". Frequency : " + patternGrid[y, x].frequency);
+                
                 //debugResult += patternGrid[y, x].index + "\t";
             }
             //debugResult += "\n";
         }
 
+        foreach (Pattern p in allPatterns)
+        {
+            print("Index " + p.index + ". Frequency : " + p.Appearance);
+        }
+
         //print(debugResult);
 
         //End Of PatternGrid & Start of Pattern Configuration
+
+        for (int i = 0; i < allPatterns.Count; i++)
+        {
+            Pattern p = allPatterns[i];
+            p.weight = (float)allPatterns[i].Appearance / (float)allPatterns.Count;
+        }
 
         foreach (Pattern p in allPatterns)
         {
@@ -291,6 +279,7 @@ public class WaveFunctionCollapse : MonoBehaviour
 
         foreach (Pattern p in allPatterns)
         {
+            
             for (int i = p.index + 1; i < allPatterns.Count; i++)
             {
                 Pattern other = allPatterns[i];
@@ -318,14 +307,6 @@ public class WaveFunctionCollapse : MonoBehaviour
                 }
             }
         }
-
-        for (int i = 0; i < allPatterns.Count; i++)
-        {
-            Pattern pattern = allPatterns[i];
-            print(pattern.frequency);
-            pattern.frequency /= allPatterns.Count;
-        }
-
         //Little Debug
         Pattern targetPattern = allPatterns[4];
         print("Target Pattern: " + targetPattern.index);
@@ -363,29 +344,30 @@ public class WaveFunctionCollapse : MonoBehaviour
         {
             List<Pattern> possibilities = new List<Pattern>(cell.Possibilites);
             float[] ranges = new float[possibilities.Count];
-            ranges[0] = possibilities[0].frequency;
+            ranges[0] = possibilities[0].weight;
+            print(possibilities[0].weight);
             for (int i = 1; i < ranges.Length; i++)
             {
-                ranges[i] = ranges[i - 1] + possibilities[i].frequency;
+                ranges[i] = ranges[i - 1] + possibilities[i].weight;
                 print(ranges[i]);
             }
 
             float rand = Random.Range(0F, 1F);
             bool decided = false;
-            for (int i = 0; !decided; i++)
-            {
-                if (i == ranges.Length)
-                {
-                    rand = Random.Range(0F, 1F);
-                    i = 0;
-                }
+            //for (int i = 0; !decided; i++)
+            //{
+            //    if (i == ranges.Length)
+            //    {
+            //        rand = Random.Range(0F, 1F);
+            //        i = 0;
+            //    }
 
-                if (ranges[i] > rand)
-                {
-                    cell.Solution = possibilities[i];
-                    decided = true;
-                }
-            }
+            //    if (ranges[i] > rand)
+            //    {
+            //        cell.Solution = possibilities[i];
+            //        decided = true;
+            //    }
+            //}
         }
 
 
